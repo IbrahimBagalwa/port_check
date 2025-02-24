@@ -10,6 +10,7 @@ use std::{
 };
 
 const MAX: u16 = 65535;
+#[warn(dead_code)]
 struct ArgsFlag {
     flag: String,
     ip_addr: IpAddr,
@@ -23,7 +24,7 @@ impl ArgsFlag {
         } else if args.len() > 4 {
             return Err("Too many arguments. Please provide");
         }
-        let f = args[1].clone();
+        let f = &args[1];
         if let Ok(ip_addr) = IpAddr::from_str(&f) {
             Ok(ArgsFlag { flag: String::from(""), ip_addr, thread: 4 })
         } else {
@@ -48,7 +49,7 @@ impl ArgsFlag {
                         return Err("Error: failed to parse thread number");
                     }
                 };
-                Ok(ArgsFlag { thread, flag, ip_addr })
+                Ok(ArgsFlag { flag, ip_addr, thread })
             } else {
                 Err("Error: Invalid argument")
             }
@@ -62,7 +63,7 @@ fn main() {
         if err.contains("help") {
             process::exit(0)
         } else {
-            eprintln!("Error: {}", err);
+            eprintln!("{} problem parsing arguments: {}", program, err);
             process::exit(0)
         }
     });
@@ -94,7 +95,7 @@ fn check(tx: Sender<u16>, start_port: u16, addr: IpAddr, thread_number: u16) {
     loop {
         match TcpStream::connect((addr, port)) {
             Ok(_) => {
-                println!(".");
+                print!("*");
                 io::stdout().flush().unwrap();
                 tx.send(port).unwrap();
             }
